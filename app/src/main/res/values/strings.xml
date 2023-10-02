@@ -1,3 +1,9 @@
 <resources>
-    <string name="app_name">TodoApp_Android_java</string>
+    <string name="app_name">TodoApp_Android_Java</string>
+    <string name="create_text">登録</string>
+    <string name="getButtonText">取得</string>
+    <string name="updateButton_Text">更新</string>
+    <string name="deletebutton_text">削除</string>
+    <string name="DataBaseButtontitle">データベースのテスト\n</string>
+    <string name="backButtonTitle">戻る</string>
 </resources>
