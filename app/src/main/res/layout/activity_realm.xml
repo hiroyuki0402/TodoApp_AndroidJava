@@ -7,14 +7,73 @@
     android:layout_height="match_parent"
     tools:context=".RealmActivity">
 
+    <LinearLayout
+        android:id="@+id/linearLayout"
+        android:layout_width="0dp"
+
+        android:layout_height="wrap_content"
+
+        android:layout_marginTop="20dp"
+        android:gravity="center"
+        android:orientation="horizontal"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <Button
+            android:id="@+id/createButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="8dp"
+            android:onClick="didTpaCreateButton"
+            android:text="@string/create_text" />
+
+        <Button
+            android:id="@+id/getButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="8dp"
+            android:onClick="didTpaGetButton"
+            android:text="@string/getButtonText" />
+
+        <Button
+            android:id="@+id/deleteButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="8dp"
+            android:onClick="didTpaDeleteButton"
+            android:text="@string/deletebutton_text" />
+
+        <Button
+            android:id="@+id/upDateButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="8dp"
+            android:onClick="didTpaUpdateButton"
+            android:text="@string/updateButton_Text" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/textView"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:text="TextView"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/linearLayout"
+        app:layout_constraintVertical_bias="0.0" />
+
     <Button
         android:id="@+id/backButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="25dp"
+        android:layout_marginStart="50dp"
         android:layout_marginBottom="30dp"
-        android:onClick="didTapBackButton"
         android:text="@string/backButtonTitle"
+        android:onClick="didTapBackButton"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
 
