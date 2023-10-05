@@ -8,13 +8,13 @@ import android.widget.Button;
 import android.widget.TextView;
 
 import java.util.Date;
-import java.util.concurrent.ScheduledFuture;
 
 import io.realm.Realm;
-import io.realm.RealmQuery;
 import io.realm.RealmResults;
-import io.realm.annotations.PrimaryKey;
 
+/**
+ * Realmデータベースの操作やUIの制御を行うクラス
+ */
 public class RealmActivity extends AppCompatActivity {
 
     // DB
@@ -43,6 +43,11 @@ public class RealmActivity extends AppCompatActivity {
 
     /*詳細*/
     private TextView descriptionText;
+
+
+    // property
+
+    private long id;
 
 
     /*一番最初に呼ばれる処理*/
@@ -92,6 +97,7 @@ public class RealmActivity extends AppCompatActivity {
 
     /*登録*/
     private void create() {
+        /* バックグラウンドスレッドを新しく作成してトランザクションを実行 */
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -110,10 +116,23 @@ public class RealmActivity extends AppCompatActivity {
                      * @param realm このトランザクション内で使用するRealmインスタンス
                      */
                     public void execute(Realm realm) {
+                        /*現在DBに登録されている最大IDの数字*/
+                        Number idMaxNumber = realm.where(TodoData.class)
+                                .max("id");
+                        /*ID初期化 (初期位置を最大値加算する数値)*/
+                        id = 1;
+
+                        /*idMaxNumberのnilチェック*/
+                        if (idMaxNumber != null) {
+                            id += idMaxNumber.longValue();
+                        } else {
+                            id -= 1;
+                        }
+
                         /*値の設定*/
-                        TodoData data = realm.createObject(TodoData.class, 1);
+                        TodoData data = realm.createObject(TodoData.class, id);
                         data.date = new Date();
-                        data.title = "テスト";
+                        data.title = "テスト" + idMaxNumber;
                         data.description = "詳細";
                     }
                 });
@@ -130,7 +149,8 @@ public class RealmActivity extends AppCompatActivity {
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        descriptionText.setText("data: テスト");
+                        String result = "テスト" + id;
+                        descriptionText.setText(result);
                     }
                 });
             }
@@ -138,71 +158,108 @@ public class RealmActivity extends AppCompatActivity {
         }).start();
     }
 
-
-    /*取得*/
+    /*ロード*/
     private void load() {
-        /*トランザクションを渡す*/
-        realm.executeTransaction(new Realm.Transaction() {
-            /*ロード処理*/
-            @Override
-            public void execute(Realm realm) {
+        /*RealmデータベースからTodoDataの全データを検索する*/
+        RealmResults<TodoData> datas = realm.where(TodoData.class).findAll();
 
-                /*検索*/
-                RealmResults<TodoData> datas = realm.where(TodoData.class).findAll();
+        /*UI上に「配列」というテキストを一時的に表示する*/
+        descriptionText.setText("配列");
 
-                descriptionText.setText("配列");
-
-                for (TodoData data : datas
-                ) {
-                    String txt = data.toString();
-                    descriptionText.setText(txt);
-
-                }
-            }
-        });
+        /* 取得した全てのTodoデータに対してループを実行*/
+        for (TodoData data : datas) {
+            String txt = descriptionText.getText() + data.toString();
+            descriptionText.setText(txt);
+        }
     }
 
-    /* アップデート*/
+    /*更新*/
     private void update() {
-        /*トランザクションを渡す*/
-        realm.executeTransaction(new Realm.Transaction() {
-            /*アップデート処理*/
+        /* バックグラウンドスレッドを新しく作成してトランザクションを実行 */
+        new Thread(new Runnable() {
             @Override
-            public void execute(Realm realm) {
+            public void run() {
+                /* バックグラウンドスレッドで新しいRealmインスタンスを取得 */
+                Realm bgRealm = Realm.getDefaultInstance();
 
-                /*検索*/
-                TodoData data = realm.where(TodoData.class).equalTo("id", 0).findFirst();
+                /* Realmのトランザクションをバックグラウンドで開始 */
+                bgRealm.executeTransaction(new Realm.Transaction() {
+                    @Override
+                    public void execute(Realm realm) {
+                        /* idが0のTodoDataオブジェクトを検索 */
+                        TodoData data = realm.where(TodoData.class).equalTo("id", 0).findFirst();
+                        if (data != null) {
+                            /* データの更新 */
+                            data.title += "テスト";
+                            data.description += "テスト";
+                        }
+                    }
+                });
 
-                descriptionText.setText("配列");
-                data.title += "テスト";
-                data.description += "テスト";
+                /* トランザクション終了後、Realmインスタンスを閉じる */
+                bgRealm.close();
 
-
+                /* UIスレッドでテキストビューを更新 */
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        descriptionText.setText("アップデート完了");
+                    }
+                });
             }
-        });
+        }).start(); /* バックグラウンドスレッドを開始 */
     }
+
 
     /*削除*/
     private void delete() {
-        /*トランザクションを渡す*/
-        realm.executeTransaction(new Realm.Transaction() {
-            /*削除処理*/
+        /* バックグラウンドスレッドでの操作を新しく作成 */
+        new Thread(new Runnable() {
             @Override
-            public void execute(Realm realm) {
-                TodoData data = realm.where(TodoData.class).equalTo("id", 0).findFirst();
+            public void run() {
+                /* バックグラウンドスレッドで新しいRealmインスタンスを取得 */
+                Realm bgRealm = Realm.getDefaultInstance();
 
-                descriptionText.setText("削除");
+                /* Realmのトランザクションをバックグラウンドで開始 */
+                bgRealm.executeTransaction(new Realm.Transaction() {
+                    @Override
+                    public void execute(Realm realm) {
+                        Number min = realm.where(TodoData.class)
+                                .min("id");
+                        /*nullCheck*/
+                        if (min == null) { return; }
 
-                data.deleteFromRealm();
+                        /* idが0のTodoDataオブジェクトを検索 */
+                        TodoData data = realm.where(TodoData.class)
+                                .equalTo("id", min.longValue())
+                                .findFirst();
+
+                        if (data != null) {
+                            /* TodoDataオブジェクトを削除 */
+                            data.deleteFromRealm();
+                        }
+                    }
+                });
+
+                /* トランザクション終了後、Realmインスタンスを閉じる */
+                bgRealm.close();
+
+                /* UIスレッドでテキストビューを更新 */
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        descriptionText.setText("削除完了");
+                    }
+                });
             }
-        });
+        }).start(); /* バックグラウンドスレッドを開始 */
     }
 
 
     // アクション
 
     /*戻る*/
-    public void didTapBackButton() {
+    public void didTapBackButton(View view) {
         finish();
     }
 
