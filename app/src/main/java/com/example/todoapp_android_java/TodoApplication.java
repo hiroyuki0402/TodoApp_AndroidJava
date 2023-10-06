@@ -2,6 +2,7 @@ package com.example.todoapp_android_java;
 
 import android.app.Application;
 import io.realm.Realm;
+import io.realm.RealmConfiguration;
 
 /**
  * アプリケーション全体の初期化を行うクラス
@@ -18,5 +19,10 @@ public class TodoApplication extends Application {
         super.onCreate();
         /// Realmデータベースの初期化
         Realm.init(this);
+
+        RealmConfiguration config = new RealmConfiguration.Builder()
+                .allowWritesOnUiThread(true)
+                .build();
+        Realm.setDefaultConfiguration(config);
     }
 }

@@ -1,12 +1,19 @@
 package com.example.todoapp_android_java;
 
 import androidx.appcompat.app.AppCompatActivity;
+
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Adapter;
 import android.widget.Button;
 import android.widget.ListView;
+
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
+
+import java.util.Date;
+import java.util.concurrent.CountDownLatch;
+
 import io.realm.Realm;
 import io.realm.RealmResults;
 
@@ -15,17 +22,26 @@ import io.realm.RealmResults;
  */
 public class MainActivity extends AppCompatActivity {
 
-    /** RealmActivityへの移動ボタン */
+    /**
+     * RealmActivityへの移動ボタン
+     */
     private Button realmButton;
 
-    /** Realmデータベースのインスタンス */
+    FloatingActionButton add;
+
+    /**
+     * Realmデータベースのインスタンス
+     */
     private Realm realm;
 
-    /** ToDoリストを表示するリストビュー */
+    /**
+     * ToDoリストを表示するリストビュー
+     */
     private ListView listView;
 
     /**
      * アクティビティが生成されたときに呼ばれるメソッドです。
+     *
      * @param savedInstanceState 以前の状態が保存されたバンドル
      */
     @Override
@@ -49,6 +65,7 @@ public class MainActivity extends AppCompatActivity {
      */
     private void configureButton() {
         realmButton = findViewById(R.id.realmButton);
+        add = findViewById(R.id.addButton);
     }
 
     /**
@@ -72,6 +89,7 @@ public class MainActivity extends AppCompatActivity {
 
     /**
      * 指定されたアクティビティに画面遷移するメソッドです。
+     *
      * @param targetActivity 遷移先のアクティビティクラス
      */
     public void moveToView(Class<?> targetActivity) {
@@ -79,11 +97,45 @@ public class MainActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
+    private void addTodo() {
+        final long[] newId = new long[1];
+
+        // UIスレッド内でRealmのトランザクションを実行
+        realm.executeTransaction(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                Number max = realm.where(TodoData.class).max("id");
+                newId[0] = (max == null) ?  1 :  max.longValue() + 1;
+
+                TodoData data = realm.createObject(TodoData.class, newId[0]);
+                data.date = new Date();
+                data.title = "";
+                data.description = "";
+
+                intent(newId[0]);
+            }
+        });
+    }
+
+
+    private void intent(long targetId) {
+        Intent intent = new Intent(MainActivity.this, InputAvtivity.class);
+        intent.putExtra("id", targetId);
+        startActivity(intent);
+    }
+
+
     /**
      * RealmActivityに遷移するためのメソッドです。
+     *
      * @param view クリックされたビュー
      */
     public void didTpaRealmButton(View view) {
         moveToView(RealmActivity.class);
+    }
+
+
+    public void didTapAddButton(View view) {
+        addTodo();
     }
 }
