@@ -64,7 +64,7 @@ public class InputAvtivity extends AppCompatActivity {
         titleField = findViewById(R.id.titleField);
         descriptionField = findViewById(R.id.descriptionField);
 
-        dateLabel.setText(dateFormat(todoData.date, "YYYY/MM/DD"));
+        dateLabel.setText(dateFormat(todoData.date, "yyyy/MM/dd"));
         titleField.setText(todoData.title);
         descriptionField.setText(todoData.description);
     }
@@ -91,6 +91,15 @@ public class InputAvtivity extends AppCompatActivity {
     }
 
     public void didTapDoneButton(View view) {
+        realm.executeTransaction(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                if (todoData != null) {
+                    todoData.title = titleField.getText().toString();
+                    todoData.description = descriptionField.getText().toString();
+                }
+            }
+        });
         finish();
     }
 
